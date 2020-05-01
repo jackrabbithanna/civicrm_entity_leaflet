@@ -708,11 +708,11 @@ class CivicrmEntityAddressLeafletMap extends StylePluginBase implements Containe
       $long_value = (array) $this->getFieldValue($result->index, $lon_field_name);
 
       if (!empty($lat_value) && !empty($long_value)) {
-        $features[] = [
+        $features = [[
           'type' => 'point',
           'lat' => $lat_value[0],
           'lon' => $long_value[0],
-        ];
+        ]];
 
         if (!empty($result->_entity)) {
           // Entity API provides a plain entity object.
@@ -826,15 +826,22 @@ class CivicrmEntityAddressLeafletMap extends StylePluginBase implements Containe
 
             // Add its entity id, so that it might be referenced from outside.
             $feature['entity_id'] = $entity->id();
-            // Attach pop-ups if we have a description field.
-            if (isset($description)) {
-              $feature['popup'] = $description;
-            }
             // Attach also titles, they might be used later on.
+
             if ($this->options['name_field']) {
               // Decode any entities because JS will encode them again and
               // we don't want double encoding.
-              $feature['label'] = !empty($this->options['name_field']) ? Html::decodeEntities(($this->rendered_fields[$result->index][$this->options['name_field']])) : '';
+              $feature['label'] = $feature['popup'] = !empty($this->options['name_field']) ? Html::decodeEntities($this->rendered_fields[$result->index][$this->options['name_field']]) : '';
+            }
+
+            // Attach pop-ups if we have a description field.
+            if (isset($description)) {
+              if (empty($feature['popup'])) {
+              $feature['popup'] = $description;
+            }
+              else {
+                $feature['popup'] .= $description;
+              }
             }
 
             // Eventually set the custom Marker icon (DivIcon, Icon Url or
